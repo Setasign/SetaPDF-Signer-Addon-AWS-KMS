@@ -1,5 +1,6 @@
 <?php
 
+use Aws\Kms\KmsClient;
 use setasign\SetaPDF\Signer\Module\AwsKMS\Module;
 
 require_once __DIR__ . '/../vendor/autoload.php';
@@ -15,7 +16,11 @@ $cert = $settings['cert'];
 $digest = $settings['digest'];
 $signatureAlgorithm = $settings['algorithm'];
 
-$awsKmsModule = new Module($region, $version, $keyId);
+$kmsClient = new KmsClient([
+    'region' => $region,
+    'version' => $version,
+]);
+$awsKmsModule = new Module($kmsClient, $keyId);
 
 $awsKmsModule->setCertificate($cert);
 $awsKmsModule->setDigest($digest);

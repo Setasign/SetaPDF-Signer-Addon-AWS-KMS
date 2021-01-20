@@ -48,19 +48,13 @@ class Module implements
     /**
      * Module constructor.
      *
-     * @param string $region
-     * @param string $version
+     * @param KmsClient $kmsClient
      * @param string $keyId
-     * @param array $httpOptions
      */
-    public function __construct($region, $version, $keyId, array $httpOptions = [])
+    public function __construct(KmsClient $kmsClient, $keyId)
     {
+        $this->kmsClient = $kmsClient;
         $this->keyId = $keyId;
-        $this->kmsClient = new KmsClient([
-            'region' => $region,
-            'version' => $version,
-            'http' => $httpOptions
-        ]);
         $this->padesModule = new SetaPDF_Signer_Signature_Module_Pades();
     }
 

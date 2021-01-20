@@ -59,21 +59,16 @@ All classes in this package are located in the namespace `setasign\SetaPDF\Signe
 ### The `Module` class
 
 This is the main signature module which can be used with the [SetaPDF-Signer](https://www.setasign.com/signer)
-component. Its constructor requires 5 arguments:
-
-- `$region` - your aws region
-- `$version` - your version, probably just 'latest'
-- `$keyId` - your key id
-- `$httpOptions` - optional;  see [guzzle](https://docs.guzzlephp.org/en/stable/request-options.html)
+component. 
 
 A simple complete signature process would look like this:
 
 ```php
-$awsKmsModule = new setasign\SetaPDF\Signer\Module\AwsKms\Module(
-    $region,
-    $version,
-    $keyId
-);
+$kmsClient = new Aws\Kms\KmsClient\KmsClient([
+    'region' => $region,
+    'version' => $version,
+]);
+$awsKmsModule = new setasign\SetaPDF\Signer\Module\AwsKms\Module($kmsClient, $keyId);
 
 $cert = file_get_contents('your-cert.crt');
 $awsKmsModule->setCertificate($cert);
