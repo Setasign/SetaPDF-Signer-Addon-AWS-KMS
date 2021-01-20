@@ -1,4 +1,4 @@
-#  SetaPDF-Signer component modules for the AWS KMS.
+#  SetaPDF-Signer component module for the AWS KMS.
 
 This package offers module for the [SetaPDF-Signer](https://www.setasign.com/signer) component that allow you to use
 the [AWS Key Management Service](https://aws.amazon.com/kms/) to **digital sign PDF documents in pure PHP**.
