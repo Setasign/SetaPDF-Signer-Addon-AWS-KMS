@@ -20,7 +20,7 @@ $kmsClient = new KmsClient([
     'region' => $region,
     'version' => $version,
 ]);
-$awsKmsModule = new Module($kmsClient, $keyId);
+$awsKmsModule = new Module($keyId, $kmsClient);
 
 $awsKmsModule->setCertificate($cert);
 $awsKmsModule->setDigest($digest);

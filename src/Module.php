@@ -48,13 +48,13 @@ class Module implements
     /**
      * Module constructor.
      *
-     * @param KmsClient $kmsClient
      * @param string $keyId
+     * @param KmsClient $kmsClient
      */
-    public function __construct(KmsClient $kmsClient, $keyId)
+    public function __construct($keyId, KmsClient $kmsClient)
     {
-        $this->kmsClient = $kmsClient;
         $this->keyId = $keyId;
+        $this->kmsClient = $kmsClient;
         $this->padesModule = new SetaPDF_Signer_Signature_Module_Pades();
     }
 

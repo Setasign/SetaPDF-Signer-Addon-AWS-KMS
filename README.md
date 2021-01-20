@@ -68,7 +68,7 @@ $kmsClient = new Aws\Kms\KmsClient\KmsClient([
     'region' => $region,
     'version' => $version,
 ]);
-$awsKmsModule = new setasign\SetaPDF\Signer\Module\AwsKms\Module($kmsClient, $keyId);
+$awsKmsModule = new setasign\SetaPDF\Signer\Module\AwsKms\Module($keyId, $kmsClient);
 
 $cert = file_get_contents('your-cert.crt');
 $awsKmsModule->setCertificate($cert);
