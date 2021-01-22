@@ -54,7 +54,7 @@ component. If you want to use it with an evaluation version please use following
 
 ## Usage
 
-All classes in this package are located in the namespace `setasign\SetaPDF\Signer\Module\GoogleCloudKMS`.
+All classes in this package are located in the namespace `setasign\SetaPDF\Signer\Module\AwsKms`.
 
 ### The `Module` class
 
