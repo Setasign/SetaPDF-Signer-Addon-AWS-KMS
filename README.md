@@ -5,9 +5,15 @@ the [AWS Key Management Service](https://aws.amazon.com/kms/) to **digital sign 
 
 ## Requirements
 
-To use this package you need credentials for the AWS KMS.
+This package uses the official
+[AWS SDK for PHP Version 3](https://docs.aws.amazon.com/sdk-for-php/v3/developer-guide/welcome.html)
+to communicate with the KMS service. You need appropriate credentials.
 
-This package is developed and tested on PHP >= 5.6. Requirements of the [SetaPDF-Signer](https://www.setasign.com/signer)
+You also need a X.509 certificates related to your stored keys. To create a self-signed certificate for testing purpose
+or to create a CSR for the certificate authority of your choice, you can use a tool we prepared
+[here](https://github.com/Setasign/Cloud-KMS-CSR).
+
+The package is developed and tested on PHP >= 5.6. Requirements of the [SetaPDF-Signer](https://www.setasign.com/signer)
 component can be found [here](https://manuals.setasign.com/setapdf-signer-manual/getting-started/#index-1).
 
 ## Installation
@@ -31,12 +37,19 @@ and execute `composer update`. You need to define the `repository` to evaluate t
 [SetaPDF-Signer](https://www.setasign.com/signer) component
 (see [here](https://getcomposer.org/doc/faqs/why-can%27t-composer-load-repositories-recursively.md) for more details).
 
+The Setasign repository requires authentication data: You can use your credentials
+of your account at [setasign.com](https://www.setasign.com) to which your licenses
+are assigned. You will be asked for this during a composer run. See
+[here](https://getcomposer.org/doc/articles/authentication-for-private-packages.md#http-basic)
+for more options for authentication with composer.
+
 **You have to define your credentials for AWS KMS in [environment variables](https://docs.aws.amazon.com/sdk-for-php/v3/developer-guide/guide_credentials_environment.html).**
 
 
 ### Evaluation version
 By default this packages depends on a licensed version of the [SetaPDF-Signer](https://www.setasign.com/signer)
-component. If you want to use it with an evaluation version please use following in your composer.json:
+component. If you want to use it with an [evaluation version](https://www.setasign.com/products/setapdf-signer/evaluate/)
+please use following in your composer.json:
 
 ```json
 {
@@ -87,6 +100,8 @@ $document = SetaPDF_Core_Document::loadByFilename($fileToSign, $writer);
 $signer = new SetaPDF_Signer($document);
 $signer->sign($awsKmsModule);
 ```
+
+Make sure that you pass `$digest` and `$algorithm` values which match the configuration of the key in the KMS.
 
 ## License
 
