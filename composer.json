@@ -1,6 +1,6 @@
 {
     "name": "setasign/setapdf-signer-addon-aws-kms",
-    "description": "",
+    "description": "A SetaPDF-Signer component signature module for the AWS Key Management Service.",
     "minimum-stability": "stable",
     "license": "MIT",
     "homepage": "https://github.com/Setasign/SetaPDF-Signer-Addon-AWS-KMS",
