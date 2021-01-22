@@ -68,31 +68,30 @@ class Module implements
     }
 
     /**
-     * Set the digest algorithm to use when signing.
-     *
-     * @param string $digest Allowed values are sha256, sha386, sha512
-     * @see SetaPDF_Signer_Signature_Module_Pades::setDigest()
-     */
-    public function setDigest($digest)
-    {
-        $this->padesModule->setDigest($digest);
-    }
-
-    /**
-     * Get the digest algorithm.
-     *
-     * @return string
-     */
-    public function getDigest()
-    {
-        return $this->padesModule->getDigest();
-    }
-
-    /**
      * @param string $signatureAlgorithm
      */
     public function setSignatureAlgorithm($signatureAlgorithm)
     {
+        switch ($signatureAlgorithm) {
+            case 'RSASSA_PKCS1_V1_5_SHA_256':
+            case 'RSASSA_PSS_SHA_256':
+            case 'ECDSA_SHA_256':
+                $this->padesModule->setDigest(Digest::SHA_256);
+                break;
+            case 'RSASSA_PKCS1_V1_5_SHA_384':
+            case 'RSASSA_PSS_SHA_384':
+            case 'ECDSA_SHA_384':
+                $this->padesModule->setDigest(Digest::SHA_384);
+                break;
+            case 'RSASSA_PKCS1_V1_5_SHA_512':
+            case 'RSASSA_PSS_SHA_512':
+            case 'ECDSA_SHA_512':
+                $this->padesModule->setDigest(Digest::SHA_512);
+                break;
+            default:
+                throw new Exception('Unknown algorithm "%s".', $signatureAlgorithm);
+        }
+
         $this->signatureAlgorithm = $signatureAlgorithm;
     }
 
