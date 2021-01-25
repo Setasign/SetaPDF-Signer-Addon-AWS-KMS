@@ -7,7 +7,7 @@ the [AWS Key Management Service](https://aws.amazon.com/kms/) to **digital sign 
 
 This package uses the official
 [AWS SDK for PHP Version 3](https://docs.aws.amazon.com/sdk-for-php/v3/developer-guide/welcome.html)
-to communicate with the KMS service. You need appropriate credentials.
+to communicate with the KMS. You need appropriate credentials.
 
 You also need a X.509 certificates related to your stored keys. To create a self-signed certificate for testing purpose
 or to create a CSR for the certificate authority of your choice, you can use a tool we prepared
