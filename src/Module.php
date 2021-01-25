@@ -141,7 +141,7 @@ class Module implements
             throw new \BadMethodCallException('Missing certificate!');
         }
 
-        $padesDigest = $this->padesModule->getDigest();
+        $digest = $this->padesModule->getDigest();
         $signatureAlgorithm = $this->signatureAlgorithm;
         if ($signatureAlgorithm === null) {
             throw new \BadMethodCallException('Missing signature algorithm');
@@ -184,7 +184,7 @@ class Module implements
                                 [
                                     new Asn1Element(
                                         Asn1Element::OBJECT_IDENTIFIER,
-                                        Asn1Oid::encode(Digest::getOid($padesDigest))
+                                        Asn1Oid::encode(Digest::getOid($digest))
                                     ),
                                     new Asn1Element(Asn1Element::NULL)
                                 ]
@@ -209,7 +209,7 @@ class Module implements
                                         [
                                             new Asn1Element(
                                                 Asn1Element::OBJECT_IDENTIFIER,
-                                                Asn1Oid::encode(Digest::getOid($padesDigest))
+                                                Asn1Oid::encode(Digest::getOid($digest))
                                             ),
                                             new Asn1Element(Asn1Element::NULL)
                                         ]
@@ -234,7 +234,7 @@ class Module implements
 
         $result = $this->kmsClient->sign([
             'KeyId' => $this->keyId, // REQUIRED
-            'Message' => hash($padesDigest, $hashData, true),
+            'Message' => hash($digest, $hashData, true),
             'MessageType' => 'DIGEST', // RAW|DIGEST
             'SigningAlgorithm' => $signatureAlgorithm
         ]);
