@@ -13,7 +13,6 @@ $region = $settings['region'];
 $version = $settings['version'];
 $keyId = $settings['keyId'];
 $cert = $settings['cert'];
-$digest = $settings['digest'];
 $signatureAlgorithm = $settings['algorithm'];
 
 $kmsClient = new KmsClient([
@@ -23,7 +22,6 @@ $kmsClient = new KmsClient([
 $awsKmsModule = new Module($keyId, $kmsClient);
 
 $awsKmsModule->setCertificate($cert);
-$awsKmsModule->setDigest($digest);
 $awsKmsModule->setSignatureAlgorithm($signatureAlgorithm);
 
 // create a writer instance

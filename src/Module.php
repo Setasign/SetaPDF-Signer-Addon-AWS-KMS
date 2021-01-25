@@ -68,31 +68,30 @@ class Module implements
     }
 
     /**
-     * Set the digest algorithm to use when signing.
-     *
-     * @param string $digest Allowed values are sha256, sha386, sha512
-     * @see SetaPDF_Signer_Signature_Module_Pades::setDigest()
-     */
-    public function setDigest($digest)
-    {
-        $this->padesModule->setDigest($digest);
-    }
-
-    /**
-     * Get the digest algorithm.
-     *
-     * @return string
-     */
-    public function getDigest()
-    {
-        return $this->padesModule->getDigest();
-    }
-
-    /**
      * @param string $signatureAlgorithm
      */
     public function setSignatureAlgorithm($signatureAlgorithm)
     {
+        switch ($signatureAlgorithm) {
+            case 'RSASSA_PKCS1_V1_5_SHA_256':
+            case 'RSASSA_PSS_SHA_256':
+            case 'ECDSA_SHA_256':
+                $this->padesModule->setDigest(Digest::SHA_256);
+                break;
+            case 'RSASSA_PKCS1_V1_5_SHA_384':
+            case 'RSASSA_PSS_SHA_384':
+            case 'ECDSA_SHA_384':
+                $this->padesModule->setDigest(Digest::SHA_384);
+                break;
+            case 'RSASSA_PKCS1_V1_5_SHA_512':
+            case 'RSASSA_PSS_SHA_512':
+            case 'ECDSA_SHA_512':
+                $this->padesModule->setDigest(Digest::SHA_512);
+                break;
+            default:
+                throw new Exception('Unknown algorithm "%s".', $signatureAlgorithm);
+        }
+
         $this->signatureAlgorithm = $signatureAlgorithm;
     }
 
@@ -142,7 +141,7 @@ class Module implements
             throw new \BadMethodCallException('Missing certificate!');
         }
 
-        $padesDigest = $this->padesModule->getDigest();
+        $digest = $this->padesModule->getDigest();
         $signatureAlgorithm = $this->signatureAlgorithm;
         if ($signatureAlgorithm === null) {
             throw new \BadMethodCallException('Missing signature algorithm');
@@ -185,7 +184,7 @@ class Module implements
                                 [
                                     new Asn1Element(
                                         Asn1Element::OBJECT_IDENTIFIER,
-                                        Asn1Oid::encode(Digest::getOid($padesDigest))
+                                        Asn1Oid::encode(Digest::getOid($digest))
                                     ),
                                     new Asn1Element(Asn1Element::NULL)
                                 ]
@@ -210,7 +209,7 @@ class Module implements
                                         [
                                             new Asn1Element(
                                                 Asn1Element::OBJECT_IDENTIFIER,
-                                                Asn1Oid::encode(Digest::getOid($padesDigest))
+                                                Asn1Oid::encode(Digest::getOid($digest))
                                             ),
                                             new Asn1Element(Asn1Element::NULL)
                                         ]
@@ -235,7 +234,7 @@ class Module implements
 
         $result = $this->kmsClient->sign([
             'KeyId' => $this->keyId, // REQUIRED
-            'Message' => hash($padesDigest, $hashData, true),
+            'Message' => hash($digest, $hashData, true),
             'MessageType' => 'DIGEST', // RAW|DIGEST
             'SigningAlgorithm' => $signatureAlgorithm
         ]);
