@@ -104,6 +104,39 @@ class Module implements
     }
 
     /**
+     * Add additional certificates which are placed into the CMS structure.
+     *
+     * @param array|\SetaPDF_Signer_X509_Collection $extraCertificates PEM encoded certificates or pathes to PEM encoded
+     *                                                                 certificates.
+     * @throws \SetaPDF_Signer_Asn1_Exception
+     */
+    public function setExtraCertificates($extraCertificates)
+    {
+        $this->padesModule->setExtraCertificates($extraCertificates);
+    }
+
+    /**
+     * Adds an OCSP response which will be embedded in the CMS structure.
+     *
+     * @param string|\SetaPDF_Signer_Ocsp_Response $ocspResponse DER encoded OCSP response or OCSP response instance.
+     * @throws SetaPDF_Signer_Exception
+     */
+    public function addOcspResponse($ocspResponse)
+    {
+        $this->padesModule->addOcspResponse($ocspResponse);
+    }
+
+    /**
+     * Adds an CRL which will be embedded in the CMS structure.
+     *
+     * @param string|\SetaPDF_Signer_X509_Crl $crl
+     */
+    public function addCrl($crl)
+    {
+        $this->padesModule->addCrl($crl);
+    }
+
+    /**
      * @inheritDoc
      */
     public function updateSignatureDictionary(SetaPDF_Core_Type_Dictionary $dictionary)
