@@ -45,26 +45,6 @@ for more options for authentication with composer.
 
 **You have to define your credentials for AWS KMS in [environment variables](https://docs.aws.amazon.com/sdk-for-php/v3/developer-guide/guide_credentials_environment.html).**
 
-
-### Evaluation version
-By default this packages depends on a licensed version of the [SetaPDF-Signer](https://www.setasign.com/signer)
-component. If you want to use it with an [evaluation version](https://www.setasign.com/products/setapdf-signer/evaluate/)
-please use following in your composer.json:
-
-```json
-{
-    "require": {
-        "setasign/setapdf-signer-addon-aws-kms": "dev-evaluation"
-    },
-    "repositories": [
-        {
-            "type": "composer",
-            "url": "https://www.setasign.com/downloads/"
-        }
-    ]
-}
-```
-
 ## Usage
 
 All classes in this package are located in the namespace `setasign\SetaPDF\Signer\Module\AwsKms`.
@@ -85,7 +65,6 @@ $awsKmsModule = new setasign\SetaPDF\Signer\Module\AwsKms\Module($keyId, $kmsCli
 
 $cert = file_get_contents('your-cert.crt');
 $awsKmsModule->setCertificate($cert);
-$awsKmsModule->setDigest($digest);
 $awsKmsModule->setSignatureAlgorithm($algorithm);
 
 // the file to sign
@@ -101,7 +80,7 @@ $signer = new SetaPDF_Signer($document);
 $signer->sign($awsKmsModule);
 ```
 
-Make sure that you pass `$digest` and `$algorithm` values which match the configuration of the key in the KMS.
+Make sure that you pass `$algorithm` value which match the configuration of the key in the KMS.
 
 ## License
 

@@ -9,31 +9,25 @@ namespace setasign\SetaPDF\Signer\Module\AwsKMS;
 
 use Aws\Kms\KmsClient;
 use SetaPDF_Core_Reader_FilePath;
-use SetaPDF_Core_Type_Dictionary;
-use SetaPDF_Core_Document as Document;
 use SetaPDF_Signer_Asn1_Element as Asn1Element;
 use SetaPDF_Signer_Asn1_Oid as Asn1Oid;
 use SetaPDF_Signer_Digest as Digest;
-use SetaPDF_Signer_Exception;
 use SetaPDF_Signer_Signature_DictionaryInterface;
 use SetaPDF_Signer_Signature_DocumentInterface;
 use SetaPDF_Signer_Signature_Module_ModuleInterface;
-use SetaPDF_Signer_Signature_Module_Pades;
+use SetaPDF_Signer_Signature_Module_PadesProxyTrait;
 
 class Module implements
     SetaPDF_Signer_Signature_Module_ModuleInterface,
     SetaPDF_Signer_Signature_DictionaryInterface,
     SetaPDF_Signer_Signature_DocumentInterface
 {
+    use SetaPDF_Signer_Signature_Module_PadesProxyTrait;
+
     /**
      * @var KmsClient
      */
     protected $kmsClient;
-
-    /**
-     * @var SetaPDF_Signer_Signature_Module_Pades Internal pades module.
-     */
-    protected $padesModule;
 
     /**
      * @var string
@@ -55,24 +49,6 @@ class Module implements
     {
         $this->keyId = $keyId;
         $this->kmsClient = $kmsClient;
-        $this->padesModule = new SetaPDF_Signer_Signature_Module_Pades();
-    }
-
-    /**
-     * @param $certificate
-     * @throws \SetaPDF_Signer_Asn1_Exception
-     */
-    public function setCertificate($certificate)
-    {
-        $this->padesModule->setCertificate($certificate);
-    }
-
-    /**
-     * @return \SetaPDF_Signer_X509_Certificate|string
-     */
-    public function getCertificate()
-    {
-        return $this->padesModule->getCertificate();
     }
 
     /**
@@ -84,23 +60,24 @@ class Module implements
             case 'RSASSA_PKCS1_V1_5_SHA_256':
             case 'RSASSA_PSS_SHA_256':
             case 'ECDSA_SHA_256':
-                $this->padesModule->setDigest(Digest::SHA_256);
+                $digest = Digest::SHA_256;
                 break;
             case 'RSASSA_PKCS1_V1_5_SHA_384':
             case 'RSASSA_PSS_SHA_384':
             case 'ECDSA_SHA_384':
-                $this->padesModule->setDigest(Digest::SHA_384);
+                $digest = Digest::SHA_384;
                 break;
             case 'RSASSA_PKCS1_V1_5_SHA_512':
             case 'RSASSA_PSS_SHA_512':
             case 'ECDSA_SHA_512':
-                $this->padesModule->setDigest(Digest::SHA_512);
+                $digest = Digest::SHA_512;
                 break;
             default:
                 throw new Exception('Unknown algorithm "%s".', $signatureAlgorithm);
         }
 
         $this->signatureAlgorithm = $signatureAlgorithm;
+        $this->_getPadesModule()->setDigest($digest);
     }
 
     /**
@@ -109,66 +86,6 @@ class Module implements
     public function getSignatureAlgorithm()
     {
         return $this->signatureAlgorithm;
-    }
-
-    /**
-     * Add additional certificates which are placed into the CMS structure.
-     *
-     * @param array|\SetaPDF_Signer_X509_Collection $extraCertificates PEM encoded certificates or pathes to PEM encoded
-     *                                                                 certificates.
-     * @throws \SetaPDF_Signer_Asn1_Exception
-     */
-    public function setExtraCertificates($extraCertificates)
-    {
-        $this->padesModule->setExtraCertificates($extraCertificates);
-    }
-
-    /**
-     * Adds an OCSP response which will be embedded in the CMS structure.
-     *
-     * @param string|\SetaPDF_Signer_Ocsp_Response $ocspResponse DER encoded OCSP response or OCSP response instance.
-     * @throws SetaPDF_Signer_Exception
-     */
-    public function addOcspResponse($ocspResponse)
-    {
-        $this->padesModule->addOcspResponse($ocspResponse);
-    }
-
-    /**
-     * Adds an CRL which will be embedded in the CMS structure.
-     *
-     * @param string|\SetaPDF_Signer_X509_Crl $crl
-     */
-    public function addCrl($crl)
-    {
-        $this->padesModule->addCrl($crl);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function updateSignatureDictionary(SetaPDF_Core_Type_Dictionary $dictionary)
-    {
-        $this->padesModule->updateSignatureDictionary($dictionary);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function updateDocument(Document $document)
-    {
-        $this->padesModule->updateDocument($document);
-    }
-
-    /**
-     * Get the complete Cryptographic Message Syntax structure.
-     *
-     * @return Asn1Element
-     * @throws SetaPDF_Signer_Exception
-     */
-    public function getCms()
-    {
-        return $this->padesModule->getCms();
     }
 
     /**
@@ -182,7 +99,8 @@ class Module implements
             throw new \BadMethodCallException('Missing certificate!');
         }
 
-        $digest = $this->padesModule->getDigest();
+        $module = $this->_getPadesModule();
+        $digest = $module->getDigest();
         $signatureAlgorithm = $this->signatureAlgorithm;
         if ($signatureAlgorithm === null) {
             throw new \BadMethodCallException('Missing signature algorithm');
@@ -204,7 +122,7 @@ class Module implements
                 $saltLength = 512 / 8;
             }
 
-            $cms = $this->padesModule->getCms();
+            $cms = $module->getCms();
 
             $signatureAlgorithmIdentifier = Asn1Element::findByPath('1/0/4/0/4', $cms);
             $signatureAlgorithmIdentifier->getChild(0)->setValue(
@@ -271,7 +189,7 @@ class Module implements
         }
 
         // get the hash data from the module
-        $hashData = $this->padesModule->getDataToSign($tmpPath);
+        $hashData = $module->getDataToSign($tmpPath);
 
         $result = $this->kmsClient->sign([
             'KeyId' => $this->keyId, // REQUIRED
@@ -282,7 +200,7 @@ class Module implements
         $signatureValue = $result->get('Signature');
 
         // pass it to the module
-        $this->padesModule->setSignatureValue((string) $signatureValue);
-        return (string) $this->padesModule->getCms();
+        $module->setSignatureValue((string) $signatureValue);
+        return (string) $module->getCms();
     }
 }
