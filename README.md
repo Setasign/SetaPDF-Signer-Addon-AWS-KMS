@@ -13,8 +13,9 @@ You also need a X.509 certificates related to your stored keys. To create a self
 or to create a CSR for the certificate authority of your choice, you can use a tool we prepared
 [here](https://github.com/Setasign/Cloud-KMS-CSR).
 
-The package is developed and tested on PHP >= 5.6. Requirements of the [SetaPDF-Signer](https://www.setasign.com/signer)
-component can be found [here](https://manuals.setasign.com/setapdf-signer-manual/getting-started/#index-1).
+The current version of the package is developed and tested on PHP >= 8.1 up to PHP 8.5. Requirements of the 
+[SetaPDF-Signer](https://www.setasign.com/signer) component can be found 
+[here](https://manuals.setasign.com/setapdf-signer-manual/getting-started/#index-1).
 
 ## Installation
 Add following to your composer.json:
@@ -39,11 +40,14 @@ and execute `composer update`. You need to define the `repository` to evaluate t
 
 The Setasign repository requires authentication data: You can use your credentials
 of your account at [setasign.com](https://www.setasign.com) to which your licenses
-are assigned. You will be asked for this during a composer run. See
-[here](https://getcomposer.org/doc/articles/authentication-for-private-packages.md#http-basic)
+are assigned or use an access token which you can create in your personal 
+[composer settings](https://www.setasign.com/my-setasign/composer-settings/#bearer-authentication) 
+on setasign.com.
+See [here](https://getcomposer.org/doc/articles/authentication-for-private-packages.md#http-basic)
 for more options for authentication with composer.
 
-**You have to define your credentials for AWS KMS in [environment variables](https://docs.aws.amazon.com/sdk-for-php/v3/developer-guide/guide_credentials_environment.html).**
+**You have to define your credentials for AWS KMS as documented 
+[here](https://docs.aws.amazon.com/sdk-for-php/v3/developer-guide/guide_credentials_default_chain.html).**
 
 ## Usage
 
@@ -57,11 +61,17 @@ component.
 A simple complete signature process would look like this:
 
 ```php
-$kmsClient = new Aws\Kms\KmsClient\KmsClient([
+use Aws\Kms\KmsClient;
+use setasign\SetaPDF\Signer\Module\AwsKMS\Module;
+use setasign\SetaPDF2\Core\Document;
+use setasign\SetaPDF2\Core\Writer\FileWriter;
+use setasign\SetaPDF2\Signer\Signer;
+
+$kmsClient = new KmsClient([
     'region' => $region,
     'version' => $version,
 ]);
-$awsKmsModule = new setasign\SetaPDF\Signer\Module\AwsKms\Module($keyId, $kmsClient);
+$awsKmsModule = new Module($keyId, $kmsClient);
 
 $cert = file_get_contents('your-cert.crt');
 $awsKmsModule->setCertificate($cert);
@@ -71,12 +81,12 @@ $awsKmsModule->setSignatureAlgorithm($algorithm);
 $fileToSign = __DIR__ . '/Laboratory-Report.pdf';
 
 // create a writer instance
-$writer = new SetaPDF_Core_Writer_File('signed.pdf');
+$writer = new FileWriter('signed.pdf');
 // create the document instance
-$document = SetaPDF_Core_Document::loadByFilename($fileToSign, $writer);
+$document = Document::loadByFilename($fileToSign, $writer);
 
 // create the signer instance
-$signer = new SetaPDF_Signer($document);
+$signer = new Signer($document);
 $signer->sign($awsKmsModule);
 ```
 
