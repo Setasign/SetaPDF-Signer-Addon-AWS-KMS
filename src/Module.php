@@ -1,43 +1,32 @@
 <?php
 
 /**
- * @copyright Copyright (c) 2021 Setasign GmbH & Co. KG (https://www.setasign.com)
+ * @copyright Copyright (c) 2026 Setasign GmbH & Co. KG (https://www.setasign.com)
  * @license   http://opensource.org/licenses/mit-license The MIT License
  */
 
 namespace setasign\SetaPDF\Signer\Module\AwsKMS;
 
 use Aws\Kms\KmsClient;
-use SetaPDF_Core_Reader_FilePath;
-use SetaPDF_Signer_Asn1_Element as Asn1Element;
-use SetaPDF_Signer_Asn1_Oid as Asn1Oid;
-use SetaPDF_Signer_Digest as Digest;
-use SetaPDF_Signer_Signature_DictionaryInterface;
-use SetaPDF_Signer_Signature_DocumentInterface;
-use SetaPDF_Signer_Signature_Module_ModuleInterface;
-use SetaPDF_Signer_Signature_Module_PadesProxyTrait;
+use setasign\SetaPDF2\Core\Reader\FilePath;
+use setasign\SetaPDF2\Signer\Asn1\Element as Asn1Element;
+use setasign\SetaPDF2\Signer\Asn1\Oid as Asn1Oid;
+use setasign\SetaPDF2\Signer\Digest;
+use setasign\SetaPDF2\Signer\Signature\Module\DictionaryInterface;
+use setasign\SetaPDF2\Signer\Signature\Module\DocumentInterface;
+use setasign\SetaPDF2\Signer\Signature\Module\ModuleInterface;
+use setasign\SetaPDF2\Signer\Signature\Module\PadesProxyTrait;
 
 class Module implements
-    SetaPDF_Signer_Signature_Module_ModuleInterface,
-    SetaPDF_Signer_Signature_DictionaryInterface,
-    SetaPDF_Signer_Signature_DocumentInterface
+    ModuleInterface,
+    DictionaryInterface,
+    DocumentInterface
 {
-    use SetaPDF_Signer_Signature_Module_PadesProxyTrait;
+    use PadesProxyTrait;
 
-    /**
-     * @var KmsClient
-     */
-    protected $kmsClient;
-
-    /**
-     * @var string
-     */
-    protected $keyId;
-
-    /**
-     * @var string|null
-     */
-    protected $signatureAlgorithm;
+    protected KmsClient $kmsClient;
+    protected string $keyId;
+    protected ?string $signatureAlgorithm;
 
     /**
      * Module constructor.
@@ -53,28 +42,16 @@ class Module implements
 
     /**
      * @param string $signatureAlgorithm
+     * @throws Exception
      */
     public function setSignatureAlgorithm($signatureAlgorithm)
     {
-        switch ($signatureAlgorithm) {
-            case 'RSASSA_PKCS1_V1_5_SHA_256':
-            case 'RSASSA_PSS_SHA_256':
-            case 'ECDSA_SHA_256':
-                $digest = Digest::SHA_256;
-                break;
-            case 'RSASSA_PKCS1_V1_5_SHA_384':
-            case 'RSASSA_PSS_SHA_384':
-            case 'ECDSA_SHA_384':
-                $digest = Digest::SHA_384;
-                break;
-            case 'RSASSA_PKCS1_V1_5_SHA_512':
-            case 'RSASSA_PSS_SHA_512':
-            case 'ECDSA_SHA_512':
-                $digest = Digest::SHA_512;
-                break;
-            default:
-                throw new Exception('Unknown algorithm "%s".', $signatureAlgorithm);
-        }
+        $digest = match ($signatureAlgorithm) {
+            'RSASSA_PKCS1_V1_5_SHA_256', 'RSASSA_PSS_SHA_256', 'ECDSA_SHA_256' => Digest::SHA_256,
+            'RSASSA_PKCS1_V1_5_SHA_384', 'RSASSA_PSS_SHA_384', 'ECDSA_SHA_384' => Digest::SHA_384,
+            'RSASSA_PKCS1_V1_5_SHA_512', 'RSASSA_PSS_SHA_512', 'ECDSA_SHA_512' => Digest::SHA_512,
+            default => throw new Exception('Unknown algorithm "%s".', $signatureAlgorithm),
+        };
 
         $this->signatureAlgorithm = $signatureAlgorithm;
         $this->_getPadesModule()->setDigest($digest);
@@ -91,7 +68,7 @@ class Module implements
     /**
      * @inheritDoc
      */
-    public function createSignature(SetaPDF_Core_Reader_FilePath $tmpPath)
+    public function createSignature(FilePath $tmpPath)
     {
         // ensure certificate
         $certificate = $this->getCertificate();

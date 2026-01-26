@@ -2,6 +2,12 @@
 
 use Aws\Kms\KmsClient;
 use setasign\SetaPDF\Signer\Module\AwsKMS\Module;
+use setasign\SetaPDF2\Core\Document;
+use setasign\SetaPDF2\Core\Writer\FileWriter;
+use setasign\SetaPDF2\Signer\Signature\Appearance\Dynamic as DynamicAppearance;
+use setasign\SetaPDF2\Signer\SignatureField;
+use setasign\SetaPDF2\Signer\Signer;
+use setasign\SetaPDF2\Signer\ValidationRelatedInfo\IntegrityResult;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
@@ -25,25 +31,31 @@ $awsKmsModule->setCertificate($cert);
 $awsKmsModule->setSignatureAlgorithm($signatureAlgorithm);
 
 // create a writer instance
-$writer = new SetaPDF_Core_Writer_File($resultPath);
+$writer = new FileWriter($resultPath);
 // create the document instance
-$document = SetaPDF_Core_Document::loadByFilename($fileToSign, $writer);
+$document = Document::loadByFilename($fileToSign, $writer);
 
 // create the signer instance
-$signer = new SetaPDF_Signer($document);
+$signer = new Signer($document);
 
 $field = $signer->addSignatureField(
     'Signature',
     1,
-    SetaPDF_Signer_SignatureField::POSITION_RIGHT_TOP,
+    SignatureField::POSITION_RIGHT_TOP,
     ['x' => -160, 'y' => -100],
     180,
     60
 );
 
-$signer->setSignatureFieldName($field->getQualifiedName());
+$fieldName = $field->getQualifiedName();
+$signer->setSignatureFieldName($fieldName);
 
-$appearance = new SetaPDF_Signer_Signature_Appearance_Dynamic($awsKmsModule);
+$appearance = new DynamicAppearance($awsKmsModule);
 $signer->setAppearance($appearance);
 
 $signer->sign($awsKmsModule);
+
+// verify the integrity to check if e.g. both private key and public key in the certificate match:
+$document = Document::loadByFilename($resultPath);
+$integrityResult = IntegrityResult::create($document, $fieldName);
+var_dump($integrityResult->isValid() ? 'Valid' : 'Not Valid! Double check that the Certificate matches the private key!');

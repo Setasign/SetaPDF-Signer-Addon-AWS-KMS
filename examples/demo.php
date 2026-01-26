@@ -2,6 +2,10 @@
 
 use Aws\Kms\KmsClient;
 use setasign\SetaPDF\Signer\Module\AwsKMS\Module;
+use setasign\SetaPDF2\Core\Document;
+use setasign\SetaPDF2\Core\Writer\FileWriter;
+use setasign\SetaPDF2\Signer\Signer;
+use setasign\SetaPDF2\Signer\ValidationRelatedInfo\IntegrityResult;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
@@ -25,10 +29,17 @@ $awsKmsModule->setCertificate($cert);
 $awsKmsModule->setSignatureAlgorithm($signatureAlgorithm);
 
 // create a writer instance
-$writer = new SetaPDF_Core_Writer_File($resultPath);
+$writer = new FileWriter($resultPath);
 // create the document instance
-$document = SetaPDF_Core_Document::loadByFilename($fileToSign, $writer);
+$document = Document::loadByFilename($fileToSign, $writer);
 
 // create the signer instance
-$signer = new SetaPDF_Signer($document);
+$signer = new Signer($document);
+$fieldName = $signer->addSignatureField()->getQualifiedName();
+$signer->setSignatureFieldName($fieldName);
 $signer->sign($awsKmsModule);
+
+// verify the integrity to check if e.g. both private key and public key in the certificate match:
+$document = Document::loadByFilename($resultPath);
+$integrityResult = IntegrityResult::create($document, $fieldName);
+var_dump($integrityResult->isValid() ? 'Valid' : 'Not Valid! Double check that the Certificate matches the private key!');
