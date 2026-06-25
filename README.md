@@ -94,4 +94,4 @@ Make sure that you pass `$algorithm` value which match the configuration of the 
 
 ## License
 
-This package is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+This package is open-source software licensed under the [MIT license](https://opensource.org/licenses/MIT).
